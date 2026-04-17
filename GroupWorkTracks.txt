@@ -1,0 +1,150 @@
+MINDFLOW — GROUP WORK SPLIT
+============================
+App is fully functional and builds clean. Split below is designed so tracks
+can run in parallel with minimal file conflicts.
+
+Run the app: npm install && npm run dev → http://localhost:5173
+
+
+═══════════════════════════════════════════════════════
+TRACK 1 — POLISH & FEEL  (UI / visual work)
+═══════════════════════════════════════════════════════
+Good for: someone comfortable with Tailwind/CSS and Framer Motion
+
+Tasks:
+  1. Focus Mode redesign
+     - Currently looks plain (white card, one button, centered text)
+     - Ideas: subtle ambient gradient background, larger task text,
+       a breathing/pulse animation on the card, nicer progress dots
+       showing how many tasks remain instead of just "X of Y"
+     - File: src/components/Dashboard.tsx → FocusMode function (bottom of file)
+
+  2. Completion celebration
+     - When all daily tasks are done, trigger a brief confetti burst
+     - Recommended library: canvas-confetti (npm install canvas-confetti)
+     - Fire it in Dashboard.tsx when completed === total && total > 0
+     - Keep it subtle — one short burst, not looping
+
+  3. Nicer empty states
+     - Progress view shows raw 0/0 numbers with no message when there are zero tasks
+     - Add a friendly illustrated empty state (emoji + warm copy)
+     - File: src/components/ProgressView.tsx
+
+  4. Mobile task actions
+     - Edit/delete buttons only show on hover — invisible on phones
+     - Fix: on screens < sm, always show a small "..." button that reveals
+       edit/delete inline instead of relying on hover
+     - File: src/components/TaskCard.tsx
+
+
+═══════════════════════════════════════════════════════
+TRACK 2 — FEATURES & INTERACTIONS  (React / state work)
+═══════════════════════════════════════════════════════
+Good for: someone comfortable with React state and component logic
+
+Tasks:
+  1. Undo delete (highest value, quick win)
+     - When a task is deleted, store it temporarily in the Zustand store
+       as `lastDeletedTask: Task | null`
+     - Show a toast at the bottom of the screen for 3s: "Task deleted  [Undo]"
+     - Clicking Undo restores it; timeout clears it
+     - Files: src/store/taskStore.ts (add action), new src/components/Toast.tsx,
+       wire into src/App.tsx
+
+  2. First-run onboarding prompt
+     - App currently opens with "Good morning." and no name
+     - On very first load (settings.name === '' and no tasks have been added by user),
+       show a simple welcome modal: "Hi! What should we call you?" + single input
+     - After submitting, dismiss and land on dashboard — feels personal immediately
+     - Files: new src/components/OnboardingModal.tsx, wire into src/App.tsx
+
+  3. Keyboard shortcut for Add Task
+     - Press "N" anywhere (not inside an input) to open the Add Task wizard
+     - Add a keydown listener in src/App.tsx
+     - Show a small hint somewhere subtle (e.g. "Press N to add" in the empty state)
+
+  4. Wire accent color through components
+     - The accent color setting (emerald/sky/violet/rose) is saved but does nothing visible
+     - Create a helper map in src/utils/helpers.ts:
+         accentClasses = { emerald: { bg: 'bg-emerald-500', ring: '...', ... }, sky: {...}, ... }
+     - Read settings.accentColor in components and swap in the right classes
+     - Files: most components use emerald-* — search for 'emerald-500' to find all instances
+
+
+═══════════════════════════════════════════════════════
+TRACK 3 — TESTING & QA  (no coding required)
+═══════════════════════════════════════════════════════
+Good for: anyone — just needs a browser and the app running
+
+Run through every item below and note: Pass / Fail / Looks off
+
+Core flows:
+  [ ] Add a task (full wizard) → appears in Today's Focus
+  [ ] Complete a task → progress bar updates, flash message shows and auto-disappears
+  [ ] Edit a task → wizard opens pre-filled, changes save correctly
+  [ ] Delete a task → disappears immediately
+  [ ] Enter Focus Mode → complete top task → next task auto-loads
+  [ ] All Tasks: active / all / done filters each show correct tasks
+  [ ] Progress view: complete tasks, check bar chart and category bars update
+  [ ] Refresh page → tasks and settings still there (localStorage persistence)
+
+Settings:
+  [ ] Set name → greeting on dashboard updates
+  [ ] Toggle dark mode → whole app switches instantly, no white flash
+  [ ] Switch to Large text → all text scales up, nothing overflows
+  [ ] Change daily limit to 5 → Focus view shows up to 5 tasks
+
+Accessibility:
+  [ ] Tab through entire app — every button should show a green focus ring
+  [ ] Screen reader: check aria-labels make sense on task complete/edit/delete buttons
+  [ ] Enable OS reduced motion → animations should collapse to near-instant
+  [ ] Test at 150% browser zoom → nothing should overflow or break
+
+Edge cases:
+  [ ] Add task with only a title, skip all other steps
+  [ ] Complete every single task → dashboard should say "All caught up!" not "No tasks yet"
+  [ ] Delete every task → all views show friendly empty states, no crashes
+  [ ] Very long task title (fill all 120 characters) → card should not overflow
+  [ ] Open app on a phone screen (or DevTools 375px) → layout should still work
+
+
+═══════════════════════════════════════════════════════
+TRACK 4 — HCI WRITE-UP & DOCUMENTATION  (writing work)
+═══════════════════════════════════════════════════════
+Good for: someone working on the project report / presentation
+
+The app was built specifically around the "Guided Minimalist Task Flow" concept.
+README.md already has a full HCI mapping section — use it as a starting point.
+
+Things to document / expand on:
+
+  1. Map features to HCI heuristics
+     Go through Nielsen's 10 usability heuristics and note where the app satisfies
+     each one. Specific examples already in the app:
+     - Visibility of system status → progress bar, completion flash message
+     - User control & freedom → edit task, undo (once Track 2 adds it)
+     - Consistency & standards → same wizard for add and edit, same card layout everywhere
+     - Error prevention → optional fields, guided steps instead of freeform forms
+     - Aesthetic & minimalist design → top-3 task limit, no sidebar, no widget grid
+
+  2. Describe the Add Task wizard design rationale
+     The wizard was intentionally built as one question per step (not a full form).
+     This reduces cognitive load per Hick's Law — more choices at once = longer decision time.
+     Worth citing in the write-up.
+
+  3. Accessibility section
+     App includes: keyboard navigation (focus rings), aria-labels, aria-pressed, aria-current,
+     dark mode (low vision / eye strain), large text mode, reduced motion support.
+     Document these for the accessibility requirements section of the report.
+
+  4. Known limitations to acknowledge
+     - No backend / multi-device sync (intentional for prototype, noted in README)
+     - Accent color setting exists in UI but doesn't propagate yet (Track 2 item)
+     - Mobile hover issue on task cards (Track 1 item)
+     Acknowledging limitations honestly is standard for HCI prototypes.
+
+  5. Suggested user study questions (if doing evaluation)
+     - "How long did it take you to add your first task?"
+     - "Did you feel overwhelmed at any point? Where?"
+     - "Did the encouraging messages feel genuine or generic?"
+     - "What would make you actually use this app daily?"
