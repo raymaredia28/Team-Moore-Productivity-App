@@ -17,6 +17,8 @@ export interface Settings {
   name: string
   dailyLimit: number    // 3 | 4 | 5
   accentColor: 'emerald' | 'sky' | 'violet' | 'rose'
+  darkMode: boolean
+  fontSize: 'normal' | 'large'
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {

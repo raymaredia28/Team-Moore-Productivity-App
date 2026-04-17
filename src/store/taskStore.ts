@@ -3,20 +3,23 @@ import { persist } from 'zustand/middleware'
 import { Task, Settings, View } from '../types'
 import { seedTasks } from '../utils/seed'
 import { generateId } from '../utils/helpers'
-import { format } from 'date-fns'
 
 interface TaskStore {
   tasks: Task[]
   settings: Settings
   view: View
   showAddWizard: boolean
+  editingTaskId: string | null
   focusMode: boolean
   lastCompletionMessage: string | null
 
   setView: (v: View) => void
   openAddWizard: () => void
   closeAddWizard: () => void
+  openEditWizard: (id: string) => void
+  closeEditWizard: () => void
   addTask: (partial: Omit<Task, 'id' | 'completed' | 'createdAt' | 'completedAt'>) => void
+  updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'completed' | 'createdAt' | 'completedAt'>>) => void
   toggleTask: (id: string) => void
   deleteTask: (id: string) => void
   updateSettings: (s: Partial<Settings>) => void
@@ -25,10 +28,15 @@ interface TaskStore {
   setCompletionMessage: (msg: string) => void
 }
 
+const getSystemDarkMode = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+
 const defaultSettings: Settings = {
   name: '',
   dailyLimit: 3,
   accentColor: 'emerald',
+  darkMode: getSystemDarkMode(),
+  fontSize: 'normal',
 }
 
 export const useTaskStore = create<TaskStore>()(
@@ -38,12 +46,15 @@ export const useTaskStore = create<TaskStore>()(
       settings: defaultSettings,
       view: 'dashboard',
       showAddWizard: false,
+      editingTaskId: null,
       focusMode: false,
       lastCompletionMessage: null,
 
       setView: (v) => set({ view: v }),
-      openAddWizard: () => set({ showAddWizard: true }),
+      openAddWizard: () => set({ showAddWizard: true, editingTaskId: null }),
       closeAddWizard: () => set({ showAddWizard: false }),
+      openEditWizard: (id) => set({ editingTaskId: id, showAddWizard: false }),
+      closeEditWizard: () => set({ editingTaskId: null }),
 
       addTask: (partial) =>
         set((state) => ({
@@ -57,6 +68,11 @@ export const useTaskStore = create<TaskStore>()(
               completedAt: null,
             },
           ],
+        })),
+
+      updateTask: (id, updates) =>
+        set((state) => ({
+          tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
         })),
 
       toggleTask: (id) =>

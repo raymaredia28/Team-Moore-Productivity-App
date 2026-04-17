@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Filter } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useTaskStore } from '../store/taskStore'
 import { TaskCard } from './TaskCard'
 import { sortTasks } from '../utils/helpers'
-import { Category, Priority } from '../types'
 
 type FilterOption = 'all' | 'active' | 'done'
 
@@ -23,8 +22,8 @@ export function AllTasks() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-stone-800">All Tasks</h1>
-          <p className="text-stone-400 text-sm mt-0.5">
+          <h1 className="text-xl font-semibold text-stone-800 dark:text-stone-100">All Tasks</h1>
+          <p className="text-stone-400 dark:text-stone-500 text-sm mt-0.5">
             {tasks.filter((t) => !t.completed).length} remaining · {tasks.filter((t) => t.completed).length} done
           </p>
         </div>
@@ -37,7 +36,7 @@ export function AllTasks() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-1 p-1 bg-stone-100 rounded-xl mb-6 w-fit" role="group" aria-label="Filter tasks">
+      <div className="flex gap-1 p-1 bg-stone-100 dark:bg-stone-800 rounded-xl mb-6 w-fit" role="group" aria-label="Filter tasks">
         {(['active', 'all', 'done'] as FilterOption[]).map((f) => (
           <button
             key={f}
@@ -45,8 +44,8 @@ export function AllTasks() {
             aria-pressed={filter === f}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none ${
               filter === f
-                ? 'bg-white text-stone-800 shadow-sm'
-                : 'text-stone-500 hover:text-stone-700'
+                ? 'bg-white dark:bg-stone-700 text-stone-800 dark:text-stone-100 shadow-sm'
+                : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
             }`}
           >
             {f}
@@ -95,12 +94,12 @@ function EmptyState({ filter, onAdd }: { filter: FilterOption; onAdd: () => void
       className="text-center py-16"
     >
       <div className="text-4xl mb-3">{icon}</div>
-      <p className="font-medium text-stone-700 mb-1">{title}</p>
-      <p className="text-sm text-stone-400 mb-5">{body}</p>
+      <p className="font-medium text-stone-700 dark:text-stone-200 mb-1">{title}</p>
+      <p className="text-sm text-stone-400 dark:text-stone-500 mb-5">{body}</p>
       {filter !== 'done' && (
         <button
           onClick={onAdd}
-          className="inline-flex items-center gap-2 px-4 py-2 border border-stone-200 rounded-xl text-sm text-stone-600 hover:bg-stone-50 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
+          className="inline-flex items-center gap-2 px-4 py-2 border border-stone-200 dark:border-stone-600 rounded-xl text-sm text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none"
         >
           <Plus size={14} /> Add a task
         </button>

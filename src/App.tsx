@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTaskStore } from './store/taskStore'
 import { Header } from './components/Header'
@@ -15,11 +16,18 @@ const VIEW_COMPONENTS = {
 }
 
 export function App() {
-  const { view, showAddWizard, focusMode } = useTaskStore()
+  const { view, showAddWizard, editingTaskId, settings } = useTaskStore()
   const ActiveView = VIEW_COMPONENTS[view]
 
+  // Sync dark mode class and font size to <html> so all Tailwind dark: variants and rem units work
+  useEffect(() => {
+    const root = document.documentElement
+    root.classList.toggle('dark', settings.darkMode)
+    root.style.fontSize = settings.fontSize === 'large' ? '112.5%' : '100%'
+  }, [settings.darkMode, settings.fontSize])
+
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col bg-stone-50 dark:bg-stone-950 transition-colors duration-300">
       <Header />
 
       <main className="flex-1">
@@ -37,7 +45,8 @@ export function App() {
       </main>
 
       <AnimatePresence>
-        {showAddWizard && <AddTaskWizard />}
+        {showAddWizard && <AddTaskWizard key="add" />}
+        {editingTaskId && <AddTaskWizard key={`edit-${editingTaskId}`} editTaskId={editingTaskId} />}
       </AnimatePresence>
     </div>
   )
