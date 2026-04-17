@@ -1,8 +1,11 @@
-import { LayoutDashboard, ListTodo, BarChart2, Settings, Zap } from 'lucide-react'
+import { LayoutDashboard, ListTodo, BarChart2, Settings, Zap, LucideProps } from 'lucide-react'
+import { ForwardRefExoticComponent, RefAttributes } from 'react'
 import { useTaskStore } from '../store/taskStore'
 import { View } from '../types'
 
-const NAV_ITEMS: { view: View; label: string; Icon: React.FC<{ size?: number; className?: string }> }[] = [
+type LucideIcon = ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>
+
+const NAV_ITEMS: { view: View; label: string; Icon: LucideIcon }[] = [
   { view: 'dashboard', label: 'Focus', Icon: LayoutDashboard },
   { view: 'all', label: 'All Tasks', Icon: ListTodo },
   { view: 'progress', label: 'Progress', Icon: BarChart2 },
