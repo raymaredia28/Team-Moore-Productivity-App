@@ -1,0 +1,70 @@
+PROJECT: MindFlow — Guided Minimalist Task Flow
+COURSE: CSCE 436 HCI
+DATE: 2026-04-17
+
+=== WHAT WAS BUILT ===
+
+A complete, runnable React web app (Vite + TypeScript + Tailwind CSS) implementing the
+"Guided Minimalist Task Flow" productivity concept. The app is fully built and passes
+a production build (`npm run build`) with zero TypeScript errors.
+
+=== TECH STACK ===
+- React 18 + TypeScript + Vite
+- Tailwind CSS v3 (stone + emerald palette)
+- Zustand with localStorage persistence (no backend)
+- Framer Motion (purposeful micro-animations)
+- Lucide React (icons)
+- date-fns (date formatting)
+
+=== FILE MAP ===
+src/main.tsx                    Entry point
+src/App.tsx                     Root: view router + AddTaskWizard overlay
+src/index.css                   Tailwind directives + base styles
+src/types/index.ts              Task, Settings, Category, Priority types + label maps
+src/store/taskStore.ts          Zustand store — all app state + localStorage persistence
+src/utils/seed.ts               8 realistic seeded student tasks (shown on first launch)
+src/utils/helpers.ts            Sorting, date helpers, encouraging message generators, stats
+src/components/Header.tsx       Sticky nav: Focus / All Tasks / Progress / Settings
+src/components/Dashboard.tsx    Home: top N tasks, progress bar, completion flash, Focus Mode
+src/components/TaskCard.tsx     Reusable card: complete checkbox, priority badge, delete on hover
+src/components/AddTaskWizard.tsx  4-step guided modal (title → due date → priority → category)
+src/components/AllTasks.tsx     Full list with active/all/done filter tabs
+src/components/ProgressView.tsx  Stats grid, 7-day bar chart, category breakdown, insight message
+src/components/SettingsPanel.tsx  Name, daily focus limit (3/4/5), accent color picker
+
+=== KEY DESIGN DECISIONS ===
+1. Dashboard shows only top N tasks (default 3) — prevents "wall of tasks" anxiety
+2. Wizard advances automatically after each selection (steps 2-4) — minimal friction
+3. All wizard fields except title are optional/skippable
+4. Focus Mode: hides nav, shows one task at a time full-screen
+5. Encouraging microcopy adapts to completion percentage — never judgmental
+6. localStorage only — zero signup, works instantly, no data loss on refresh
+7. Accent color setting exists for personalization without structural complexity
+
+=== THREE MAIN USER FLOWS ===
+1. VIEW TOP TASKS: Open app → Dashboard shows top 3 priority tasks immediately
+2. ADD TASK: Click "Add a task" → 4-step wizard → confirmation with positive message
+3. PROGRESS: Click Progress tab → stats, 7-day chart, contextual encouragement
+
+=== HCI REQUIREMENT MAPPING ===
+- Reduce overload: top N limit, Focus Mode, no multi-column clutter
+- Fast setup: no auth, seeds on first launch, wizard takes ~15s
+- Supportive feedback: completion messages, progress bar, insight copy in Progress view
+- Limited personalization: exactly 3 settings (name, limit, color)
+- Sustainable: localStorage persistence, streak counter, calm visual design
+
+=== KNOWN STATE / THINGS TO KNOW FOR FUTURE AGENTS ===
+- Accent color setting is stored but currently only changes Settings UI selection highlight.
+  To fully wire it, propagate settings.accentColor through the store and replace
+  hardcoded `emerald-*` classes with dynamic class maps in Header, TaskCard, Dashboard.
+- No routing library used — view state is a string in Zustand store (simple enum switch in App.tsx)
+- seed.ts runs once on first load (Zustand persist). If a user clears localStorage, seeds re-appear.
+- postcss.config.js and tailwind.config.js use module.exports (CJS) — required because
+  package.json does NOT have "type":"module". Do not convert to ESM without adding that field.
+- Build output goes to /dist, not tracked in git.
+
+=== HOW TO RUN ===
+npm install
+npm run dev     → http://localhost:5173
+npm run build   → production build to /dist
+npm run preview → serve /dist locally

@@ -1,0 +1,154 @@
+MINDFLOW — AGENT HANDOFF NOTES
+Last updated: 2026-04-17
+================================
+
+=== WHAT HAS BEEN BUILT ===
+
+Stack: Vite + React 18 + TypeScript + Tailwind CSS v3 + Zustand + Framer Motion + date-fns + Lucide React
+State: Zustand with localStorage persistence (no backend)
+Build: Passing clean (tsc + vite build, zero errors)
+Run: npm install && npm run dev → http://localhost:5173
+
+Core features shipped:
+- Dashboard with top N priority tasks (default 3, configurable to 3/4/5)
+- Today's progress bar with live completion count
+- Completion flash message (auto-clears after 2.5s via useEffect, not onAnimationComplete)
+- 4-step guided Add Task wizard (title → due date → priority → category)
+  - Auto-advances on selection for steps 2–4
+  - All fields except title are optional/skippable
+  - Encouraging success screen after submission
+- Edit Task — pencil icon on hover, same wizard pre-filled with existing values
+- Delete Task — trash icon on hover, works on active and completed tasks
+- Focus Mode — hides nav, shows one task at a time, celebration screen when all done
+- All Tasks view with active/all/done filter tabs
+- Progress view: stats grid, 7-day animated bar chart, category breakdown, contextual insight messages
+- Settings: name, daily focus limit, accent color, dark mode toggle, text size
+- Dark mode — class-based Tailwind, moon/sun toggle in header + switch in Settings, defaults to OS preference
+- Text size — Normal / Large (scales html font-size to 112.5%, all rem units scale with it)
+- Reduced motion — CSS @media (prefers-reduced-motion: reduce) in index.css
+- Seeded with 8 realistic student tasks on first launch
+- Full keyboard accessibility: focus-visible rings, aria-labels, aria-pressed, aria-current, role attributes
+
+=== KNOWN GAPS / INCOMPLETE ITEMS ===
+
+1. Accent color setting is stored and displayed in Settings but NOT propagated to
+   component classes. All interactive elements are hardcoded to emerald-*.
+   To fix: create an accentClasses map and replace hardcoded emerald classes in
+   Header, TaskCard, Dashboard, AddTaskWizard, AllTasks, ProgressView, SettingsPanel.
+
+2. AnimatePresence exit animations in AllTasks: TaskCards are wrapped in a div.space-y-2.5
+   which is a direct child of AnimatePresence — exit animations won't fire per-card.
+   The same pattern was fixed in Dashboard but AllTasks still has the wrapper div.
+   Fix: map cards as direct AnimatePresence children (same pattern as Dashboard).
+
+3. No confirmation on delete. Tasks disappear immediately with no undo. Consider a
+   brief toast with "Undo" or a confirm step, especially for completed tasks.
+
+4. getTodayStats counts a task as "today" if its dueDate is today OR its completedAt
+   starts with today's date. This means tasks completed today but due on another day
+   count toward today's total, which can make the denominator confusing. Review this logic.
+
+5. Streak counter does not break if today has no completions yet (only breaks on i > 0).
+   This is intentional (today isn't over), but should be documented or surfaced to the user
+   ("active today" vs "completed today").
+
+=== FEATURE RECOMMENDATIONS (priority order) ===
+
+HIGH PRIORITY — Core UX gaps:
+
+1. Undo delete
+   Quick toast (3s) with "Undo" button after deleting a task.
+   Simple to implement: hold deleted task in a store field, restore on undo, clear after timeout.
+
+2. Onboarding / first-run name prompt
+   Currently the app shows "Good morning." with no name on first launch.
+   A single-field modal on first open ("What should we call you?") would immediately
+   personalize the greeting and improve first impressions for demo.
+
+3. Mobile touch support for task actions
+   Edit/delete buttons only appear on hover (mouse). On mobile, there's no hover state.
+   Fix: show action buttons on tap/long-press, or add a swipe-to-delete gesture,
+   or show a "..." overflow menu on small screens.
+
+MEDIUM PRIORITY — Completeness and polish:
+
+4. Wire accent color through all components
+   The setting exists but does nothing visible. Map 'emerald' | 'sky' | 'violet' | 'rose'
+   to Tailwind class strings and apply to buttons, progress bars, checkboxes, focus rings.
+
+5. Recurring tasks / task templates
+   Fits the student use case (e.g. "Weekly reading", "Daily workout").
+   Keep it minimal: a "repeat" option in the wizard (daily / weekly / none).
+
+6. Due date relative display on All Tasks
+   The All Tasks view shows raw dates from formatDueDate but doesn't visually distinguish
+   overdue vs upcoming vs no-date tasks with color in the list. Already done in TaskCard
+   but verify it's consistently visible in the non-prominent card variant too.
+
+7. Keyboard shortcut to open Add Task
+   "N" or "/" to open the wizard without clicking. Fits the fast task entry requirement.
+   Add a keydown listener in App.tsx, guard against firing inside inputs.
+
+8. Empty Progress view message
+   If the user has zero tasks (cleared everything), the Progress view shows 0/0 stats
+   with no guiding message. Add a friendly empty state here.
+
+LOW PRIORITY — Nice to have for HCI demo:
+
+9. Confetti / celebration animation on full completion
+   When all tasks for the day are done, a brief canvas confetti burst would make the
+   completion moment more satisfying and memorable for a demo audience.
+
+10. Task reordering (drag and drop)
+    Low priority since the sorting algorithm handles priority/due date automatically.
+    But for power users who want manual control, @dnd-kit is a good lightweight option.
+
+11. "Match system" button for dark mode
+    Currently the app defaults to system preference on first launch, but once the user
+    toggles it manually there's no way to re-sync to system. A "Use system preference"
+    option in Settings would complete the accessibility story.
+
+12. Export / share tasks
+    Out of scope for HCI prototype but worth noting for future iterations.
+
+=== THINGS TO TEST MANUALLY ===
+
+Flows to verify before demo:
+[ ] Add a task through the full 4-step wizard → verify it appears in Today's Focus
+[ ] Complete a task → verify progress bar updates, flash message appears and auto-clears
+[ ] Edit a task → verify all fields pre-fill correctly, changes persist after save
+[ ] Delete a task → verify it disappears immediately, no orphan state
+[ ] Enter Focus Mode → complete top task → verify next task appears automatically
+[ ] All Tasks filter: active / all / done tabs all show correct subsets
+[ ] Progress view: complete a few tasks, verify bar chart and category bars animate correctly
+[ ] Settings: toggle dark mode → verify instant apply across all views
+[ ] Settings: switch to Large text → verify all text scales up proportionally
+[ ] Settings: set name → verify greeting on dashboard updates
+[ ] Settings: change daily limit to 5 → verify Focus view shows up to 5 tasks
+[ ] Refresh page → verify all tasks and settings persist via localStorage
+[ ] Test with OS dark mode enabled → verify app defaults to dark on first load (clear localStorage first)
+[ ] Test with OS reduced motion enabled → verify animations collapse to near-instant
+[ ] Tab through all interactive elements → verify focus rings are visible everywhere
+[ ] Test on mobile viewport (375px) → verify layout doesn't break, wizard usable
+
+Edge cases to check:
+[ ] Add task with only a title, skip all other steps → task should appear with medium priority, no date, study category
+[ ] Mark all tasks complete → dashboard should show "All caught up!" not "No tasks yet"
+[ ] Delete all tasks → all views should show friendly empty states
+[ ] Very long task title (120 chars) → should not overflow card layout
+[ ] Two tasks with same title → both should exist independently (id-based, not title-based)
+
+=== FILE MAP FOR NEXT AGENT ===
+
+src/App.tsx                     Root — syncs dark/fontSize to <html>, renders active view + wizard overlay
+src/store/taskStore.ts          All state + actions (tasks, settings, view, wizards, focus mode)
+src/types/index.ts              Task, Settings, Category, Priority types
+src/utils/seed.ts               8 seeded student tasks (runs once on first localStorage load)
+src/utils/helpers.ts            Sorting, date formatting, stats, encouraging messages
+src/components/Header.tsx       Nav + dark mode quick toggle
+src/components/Dashboard.tsx    Home view — greeting, progress bar, top tasks, focus mode
+src/components/TaskCard.tsx     Reusable card — complete, edit, delete
+src/components/AddTaskWizard.tsx  Handles both add (no prop) and edit (editTaskId prop) modes
+src/components/AllTasks.tsx     Full list with filter tabs
+src/components/ProgressView.tsx  Stats, 7-day chart, category bars, insight message
+src/components/SettingsPanel.tsx  Appearance (dark/font), name, limit, accent color
